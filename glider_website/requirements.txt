@@ -1,4 +1,0 @@
-dash
-gunicorn
-plotly
-pandas

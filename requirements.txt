@@ -1,4 +1,6 @@
 dash
+dash-bootstrap-components
+flask
+openai
+python-dotenv
 gunicorn
-plotly
-pandas
