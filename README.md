@@ -1,4 +1,4 @@
-Glider Website
+Glider Command Website
 ==============
 
 A lightweight web application designed to manage and display mission-file workflows for underwater gliders. Built with **Python (Flask/Dash)** and simple frontend assets, the application streamlines mission planning, deployment tracking, and data post-processing for glider operations.
