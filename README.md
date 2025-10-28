@@ -48,11 +48,13 @@ pip install -r requirements.txt
 
 Project Structure
 -----------------
+<pre>
 glider-website/
-├── App.py # Main application entry point
-├── assets/ # Static assets (CSS, JS, images)
-├── pages/ # Dash page components
-├── requirements.txt # Python dependencies
-├── Procfile # Deployment configuration
-└── .gitignore
+├── App.py             # Main application entry point
+├── assets/            # Static assets (CSS, JS, images)
+├── pages/             # Dash page components
+├── requirements.txt   # Python dependencies
+├── Procfile           # Deployment configuration
+└── .gitignore         # Git ignored files and folders
+</pre>
 
