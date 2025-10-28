@@ -44,3 +44,15 @@ Clone this repository:
 git clone https://github.com/FlorenceOTATO-index/glider-website.git
 cd glider-website
 pip install -r requirements.txt
+```
+
+Project Structure
+-----------------
+glider-website/
+├── App.py # Main application entry point
+├── assets/ # Static assets (CSS, JS, images)
+├── pages/ # Dash page components
+├── requirements.txt # Python dependencies
+├── Procfile # Deployment configuration
+└── .gitignore
+
