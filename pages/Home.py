@@ -5,6 +5,8 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 import base64
+from dash import dcc, html, Input, Output, State, callback
+
 
 # -----------------------------
 # OpenAI setup

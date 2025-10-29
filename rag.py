@@ -18,11 +18,20 @@ coll = db.get_or_create_collection("glider-kb")
 
 # System instructions
 SYSTEM_RULES = (
-    "You are a strict domain assistant for Slocum glider conventions. "
-    "Answer ONLY from the provided context chunks. "
-    "If the answer is not in the context, reply exactly: "
-    "\"I don’t have information about that in the provided files.\""
+    "You are a Slocum glider mission assistant. "
+    "Your task is to convert human instructions into valid mission files. "
+    "There are two main types of files:\n"
+    " - `.ma` files (mission arguments): consist only of parameter assignments with `SET`. "
+    "   Example: `SET f_max_working_depth = 800`.\n"
+    " - `.mi` files (mission instructions): define mission flow. They may include `.ma` files "
+    "   and use commands like `goto_waypoint`, `goto_list`, `dive_to`, `hold`, `climb_to_surface`, "
+    "`surface_every`, `if ... endif`, `abort_mission`, `report`, and loops.\n"
+    "Always use the syntax consistent with the file type. "
+    "Never output YAML, JSON, or pseudocode. "
+    "If unsure, reply exactly: 'I don’t have information about that in the provided files.'"
 )
+
+
 
 def retrieve(query: str, k: int = 6):
     """Retrieve top-k most relevant chunks from the knowledge base."""
