@@ -1,0 +1,195 @@
+# electa.mi
+#
+#  Retrieves waypoints from mafiles/goto_l29.ma
+#  Retrieves yo envelope  from mafiles/yo80.ma
+#  Retrieves climb to surface controls from mafiles/surfac81 through 87.ma
+#  All science sensors sample on down/up/hover/surface from mafiles/sample13.ma
+#
+# 10-July-2010 ballsup@webbresearch.com Initial (based on glmpc.mi)
+# 30-Nov-2010  ballsup@webbresearch.com	changed abort for cop tickle 13.5 hours and disabled percentage method
+# 09-Oct-2013  gong@vims.edu modified for VA line from ESL to slope sea.
+# 21-Oct-2013  gong@vims.edu continued optimization for VIMS gliders based on input from Webb and RUCOOL
+# 21-Oct-2013  gong@vims.edu cleaned up and removed autoballast controls
+# 2015-Sep-02 gong@vims.edu adopted for unit_417, Sylvia (800 cc 200 m pump)
+# 2016-Aug-12 gong@vims.edu for MARES 2016 deployment
+# 2018-Apr-30 gong@vims.edu adopted from MARES16.MI, configured for VA sampling, updated mafiles number scheme
+# 2021-Aug-25 gong@vims.edu adopted from sylvia.mi for electa.mi
+# 2022-Apr-12 gong@vims.edu updated for MARACOOS W line from NJ (shelf flight)
+# 2023-Mar-20 gong@vims.edu updated for MARACOOS W line after PASSENGERS 2022, alkaline batt
+
+################################################################################
+sensor: c_science_all_on_enabled(bool)   0  # in, non-zero enables c_science_all_on
+					    # disable this sensor to allow for individually
+					    # sampled science sensors ie sample11.ma and greater
+sensor: c_science_send_all(bool)  0   # 0: just send standard subset but still log them all on science.
+
+# Max working depth: 51 for 50m glider, 102 for 100m, 206 for 200m, 360 for 350m, 1050 for 1000m
+  sensor: f_max_working_depth(m)		1050
+
+# Crush Depth: 225 for 50m, 100m, 200m, and 1200 for 1000m
+  sensor: f_crush_depth(m)			1200  
+
+sensor: u_reqd_depth_at_surface(m) 4.0  #! visible = True; min = 1.0; max = 10.0
+                                        # in, depths less than this considered "at surface"
+
+sensor: u_use_ctd_depth_for_flying(bool) 0  # true=> use ctd measurement for m_depth
+                                            # implemented as emergency workaround for
+                                            # broken ocean pressure
+
+sensor: u_use_current_correction(nodim)  0  #  0 calculate, but do not use m_water_vx/y
+                                            #  1 use m_water_vx/y to navigate AND aim
+
+sensor: u_dbd_sensor_list_xmit_control(enum)   2  # 0  = always transmit header
+                                                  # 1  = transmit header on initial mission segment only
+                                                  # 2  = transmit header if THIS glider hasn't sent it before
+                                                  # 3  = never transmit header
+
+sensor: u_sci_dbd_sensor_list_xmit_control(enum)   2  # same as above
+
+sensor: c_iridium_no_char_timeout(mins) 10  # How long to wait for a character at all other times
+                                            # This is internally to clipped to never be less  # true=> use ctd measurement for m_depth
+                                            # implemented as emergency workaround for
+                                            # broken ocean pressure
+
+sensor: u_use_current_correction(nodim)  0  #  0 calculate, but do not use m_water_vx/y
+                                            #  1 use m_water_vx/y to navigate AND aim
+
+sensor: u_dbd_sensor_list_xmit_control(enum)   2  # 0  = always transmit header
+                                                  # 1  = transmit header on initial mission segment only
+                                                  # 2  = transmit header if THIS glider hasn't sent it before
+                                                  # 3  = never transmit header
+
+sensor: u_sci_dbd_sensor_list_xmit_control(enum)   2  # same as above
+
+sensor: c_iridium_no_char_timeout(mins) 10  # How long to wait for a character at all other times
+                                            # This is internally to clipped to never be less than 5 minutes
+                                            # unless you are in lab_mode.  This is catch all to force an iridium
+                                            # error (and a redial) if it ever gets "stuck"
+
+sensor: u_alt_min_depth(m)                 1100  #  !put u_alt_min_depth 35
+
+sensor: u_low_power_cycle_time(sec)          4  # in, num of secs/cycle on glider processor
+                                           # during low power mode (dive/climbs),
+                                           # <=0 disables low power mode
+
+sensor: u_science_low_power(sec)   0       # -1 = disabled, science always on
+                                           #  0 = power down science when not sampling
+                                           #  x = power down science when not sampling and
+                                           #      power up science x seconds prior to inflection
+
+#sensor: u_allowable_cycle_overrun(msec)  1000
+
+sensor: u_autoballast_abort(bool)       0      #  if autoballast fails to converge, then abort if true.  if false, c_autoballast_state will change to 3 and continue with the last ballast amounts
+
+sensor: u_min_thruster_abort_ascent_rate(m/s)  -0.05
+
+#sensor: u_autoballast_end_on_converge(bool)  1  #in.  If true, end autoballast adjustments to c_[climb/dive] once converged.  If false, keep running autoballast.
+
+sensor: x_fin_deadband(rad)   0.07  # this appears to be needed for glider with new fin on G3S to avoid digifin OOD causing science logging errors and mission abort
+
+sensor: f_fin_deadzone_width(rad)   0.07  # this works in concert with x_fin_deadband, also for glider with new fin on G3S
+
+################################################################################
+
+behavior: abend
+	b_arg: overdepth(m)                   1010  # glider finds itself in > 1005m of water
+    b_arg: overdepth_sample_time(s)       60 # how often to check
+
+														# MS_ABORT_OVERTIME
+    b_arg: overtime(s)                    -1   # < 0 disables, 14400 == 4 hours
+
+														# MS_ABORT_WPT_TOOFAR
+
+    b_arg: no_cop_tickle_for(sec)         18000 # secs, abort mission if watchdog
+                                               # not tickled this often, <0 disables
+    b_arg: no_cop_tickle_percent(%)       10.0 # 0-100, <0 disables
+
+    b_arg: max_wpt_distance(m)            800000   # Maximum allowable distance to a waypoint
+
+	b_arg: samedepth_for(sec)            1200
+    b_arg: samedepth_for_sample_time(s)   120 # how often to check / can be used to stop stuck at depth
+
+    b_arg: stalled_for(sec)               1800
+    b_arg: stalled_for_sample_time(sec)   180
+
+    b_arg: undervolts(volts)              12.8  # < 0 disables
+                                                # Decrease to 9 for Lithium primary batteries
+                                                # Increase to 12.8 for lithium ion rechargeable batteries
+                                                # Shoreside power supply is at 11.6.
+    b_arg: undervolts_sample_time(sec)    300 # < 0 disables
+
+	b_arg: vacuum_max(inHg)               12
+	b_arg: vacuum_sample_time(sec)        300
+
+    #b_arg: reqd_free_heap(bytes)             50000
+
+	# b_arg: max_allowable_busy_cpu_cycles(cycles)	75 # busy CPU check
+	b_arg: use_thruster_for_ascent(bool)  0
+
+################################################################################
+
+# Come up if haven't had comms for a while
+behavior: surface
+    b_arg: args_from_file(enum) 71 # read from mafiles/surfac81.ma
+    b_arg: start_when(enum)         12            # BAW_NOCOMM_SECS 12, when have not had comms for WHEN_SECS secs
+
+################################################################################
+
+    # Come up when mission done
+    # This is determined by no one steering in x-y plane (no waypoints)
+behavior: surface
+    b_arg: args_from_file(enum) 72 # read from mafiles/surfac82.ma
+    b_arg: start_when(enum)         3             # 0-immediately, 1-stack idle 2-pitch #############################################################
+
+    # Come up no comms x hours
+behavior: surface
+    b_arg: args_from_file(enum) 76 # read from mafiles/surfac86.ma
+    b_arg: start_when(enum)         12		          # 9-every when_secs, 12 no comms
+
+################################################################################
+
+	# nothing commanded
+behavior: surface
+	b_arg: args_from_file(enum) 77 # read from mafiles/surfac87.ma
+    b_arg: start_when(enum)         1 		  # 1-stack idle
+
+################################################################################
+
+behavior: goto_list
+    b_arg: args_from_file(enum)  77   # read from mafiles/goto_l29.ma
+    b_arg: start_when(enum)      0   # 0-immediately, 1-stack idle 2-heading idle
+
+################################################################################
+
+behavior: yo
+    b_arg: args_from_file(enum) 77   # read from mafiles/yo80.ma
+    b_arg: start_when(enum)      2   #  0-immediately, 1-stack idle 2-depth idle
+    b_arg: end_action(enum)      2   # 0-quit, 2 resume
+
+################################################################################
+
+# Sample : CTD
+behavior: sample
+    b_arg: args_from_file(enum)            71  # >= 0 enables reading from mafiles/sample13.ma
+
+# Sample : flbbcd
+behavior: sample
+    b_arg: args_from_file(enum)            72
+
+# Sample : oxy4
+#behavior: sample
+#    b_arg: args_from_file(enum)            73
+
+# Sample : bsipar
+behavior: sample
+    b_arg: args_from_file(enum)            74
+
+################################################################################
+
+behavior: prepare_to_dive
+    b_arg: start_when(enum)     0     # 0-immediately, 1-stack idle 2-depth idle
+    b_arg: wait_time(s)         720     # 12 minutes, how long to wait for gps
+
+################################################################################
+
+behavior: sensors_in       # Turn most input sensors off
