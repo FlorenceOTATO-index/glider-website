@@ -1,12 +1,15 @@
+# Byte-compiled / cache
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+*.py[cod]
+*$py.class
+
+# Virtual environments
 .venv/
 env/
 venv/
 ENV/
+
+# Distribution / packaging
 build/
 develop-eggs/
 dist/
@@ -21,7 +24,14 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# IDE / Editor settings
 .idea/
 .vscode/
+
+# System files
 .DS_Store
+
+# Environment / secrets
 .env
+*.env
